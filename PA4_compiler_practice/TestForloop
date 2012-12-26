@@ -1,0 +1,31 @@
+
+int fib(int n)
+{
+	int i;
+	int n0;
+	int n1;
+	int res;
+	res = n0 = 0;
+	n1 = 1;
+	if(n == 0) return n0;
+	if(n == 1) return n1;
+	for(i = 2 ; i <= n ; i = i + 1)
+	{	
+		res = n1 + n0;
+		n0 = n1;
+		n1 = res;
+	}
+	
+	return res;
+}
+
+
+void main(void) {
+  int i;
+  int x;
+  x = iread();
+  for(i = 0 ; i < x ; i = i + 1)
+  	iprint(fib(i));
+	
+	return;
+}

@@ -22,7 +22,6 @@ IfStmt::IfStmt(Expr* cond_, Stmt* then_) : cond(cond_), thenStmt(then_), elseStm
 	if (cond->getType() != BOOL_TYPE)
 		printError(IFSTMTERR, vector<string>());
 	setStacksize(max(cond->getStacksize(), thenStmt->getStacksize() ));
-	//printf("%d\n", stacksize);
 }
 
 IfStmt::IfStmt(Expr* cond_, Stmt* then_, Stmt* else_) : cond(cond_), thenStmt(then_), elseStmt(else_) {
@@ -77,18 +76,9 @@ ReturnStmt::ReturnStmt(Expr* returnExpr_) : returnExpr(returnExpr_) {
 		setStacksize(returnExpr->getStacksize() );
 	}
 }
-
+/* TODO notice return instrusion with type or VOID */
 void ReturnStmt::gencode(FILE *f) const {
 
-	if(returnExpr == NULL) emit(f,"return");
-	else
-	{
-		returnExpr->gencode(f);
-		if(returnExpr->getType() == INT_TYPE || returnExpr->getType() == BOOL_TYPE) emit(f,"ireturn");
-		else if(returnExpr->getType() == FLOAT_TYPE) emit(f,"freturn");
-		else if(returnExpr->getType() == INT_ARRAY_TYPE || returnExpr->getType() == BOOL_ARRAY_TYPE || returnExpr->getType() == FLOAT_ARRAY_TYPE) emit(f,"areturn");
-		else yyerror("Unknown eturn type");
-	}
 }
 
 CompoundStmt::CompoundStmt(vector<Expr* >* localDecls_, vector<Stmt* >* stmts_) : localDecls(localDecls_), stmts(stmts_)
@@ -140,8 +130,7 @@ FuncDeclStmt::FuncDeclStmt(Expr_Type returnType_, string ident_, vector<Expr_Typ
 	//subtract parameters off for local var count
 	maxLocalVars = (currentSymbolTable->getMaxLocalCount());
 	
-	//setStacksize(100);
-	setStacksize( body->getStacksize() );	
+	setStacksize(100);
 }
 
 void FuncDeclStmt::gencode(FILE *f) const {
@@ -166,7 +155,7 @@ void FuncDeclStmt::gencode(FILE *f) const {
 	fprintf(f, ")");
 
 	//Print return type
-		fprintf(f, "%s", TypeSignature[returnType].c_str());
+	fprintf(f, "%s", TypeSignature[returnType].c_str());
 
 	//Print max number of local variables in scope at one time
 	fprintf(f, "\n\t.limit locals %d\n", maxLocalVars);
@@ -188,28 +177,15 @@ StaticVarDeclStmt::StaticVarDeclStmt(Expr_Type type_, string ident_) : type(type
 void StaticVarDeclStmt::gencode(FILE *f) const {
 	emitGlobal(f, ident, type);
 }
-
+/* TODO count the stack size */
 ForStmt::ForStmt(Expr* init_, Expr* cond_, Expr* variance_, Stmt* body_) : init(init_), cond(cond_), variance(variance_), body(body_)  {
 	if (cond->getType() != BOOL_TYPE)
 		printError(FORSTMTERR, vector<string>());
 	
-	setStacksize(max(init->getStacksize(), max(cond->getStacksize(), max(variance->getStacksize(), body->getStacksize()  ))));
-}
-
-void ForStmt::gencode(FILE *f) const {
-	init->gencode(f);
-	emit(f, "pop");
 	
-	int condLabel = getLabel();
-	int exitLabel = getLabel();
-	emitLabel(f, condLabel); 
-	cond->gencode(f);
-	emitJump(f,"ifeq", exitLabel); // if false go to bottom label (EXIT)
-	body->gencode(f);
-	variance->gencode(f);
-	emit(f, "pop");
-	emitJump(f,"goto", condLabel); // go to top label (REPEAT)
-	emitLabel(f, exitLabel); // emit label for exit	
+}
+/* TODO */
+void ForStmt::gencode(FILE *f) const {
 
 }
 
@@ -221,7 +197,7 @@ StaticArrDeclStmt::StaticArrDeclStmt(Expr_Type type_, string ident_) : type(GARB
 		printError(REDEFINEDVAR, vector<string>());
 }
 
+/* TODO */
 void StaticArrDeclStmt::gencode(FILE *f) const {
-	emitGlobal(f, ident, type);
 }
 

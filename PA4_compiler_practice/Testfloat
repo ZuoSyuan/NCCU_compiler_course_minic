@@ -1,0 +1,20 @@
+float PI;
+
+void setPI(float f)
+{
+	PI = f;
+	return;
+}
+
+void main(void) {
+	float r;
+	float rr;
+	setPI(3.14);
+  fprint(PI);
+	r = fread();
+	rr = r*r;
+	fprint(rr);
+	fprint(2 * PI * rr);
+
+	return;
+}

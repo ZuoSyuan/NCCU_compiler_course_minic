@@ -25,9 +25,8 @@ void IntConstExpr::gencode(FILE* f) const {
 void BoolConstExpr::gencode(FILE* f) const {
 	emit(f, "ldc", ((value) ? 1 : 0));
 }
-
+/* TODO */
 void FloatConstExpr::gencode(FILE* f) const {
-	emit(f, "ldc", value);
 }
 
 CallExpr::CallExpr(string ident_, vector<Expr*>* args_) : Expr(GARBAGE_TYPE), ident(ident_), args(args_) {
@@ -75,15 +74,15 @@ void CallExpr::gencode(FILE* f) const {
 	for( iter = (*args).begin(); iter != (*args).end(); iter++ ) {
 		(*iter)->gencode(f);
 	}
-	
+	/* TODO complete "iread" and "fprint" branch*/
 	if(ident == "iread")
-		emit(f, "invokestatic", "IOclass/iread()I");
+		;
 	else if(ident == "fread")
 		emit(f, "invokestatic", "IOclass/fread()F");
 	else if(ident == "iprint")
 		emit(f, "invokestatic", "IOclass/iprint(I)V");
 	else if(ident == "fprint")
-		emit(f, "invokestatic", "IOclass/fprint(F)V");
+		;
 	else
 	{
 		fprintf(f, "\tinvokestatic %s/%s(", filename.c_str(), ident.c_str());	
@@ -116,10 +115,10 @@ LocalDeclExpr::LocalDeclExpr(string ident_, Expr_Type type_) : Expr(type_, 1), i
 }
 
 void LocalDeclExpr::gencode(FILE* f) const {
+/* TODO complete FOAT_TYPE branch*/
 	if(type == FLOAT_TYPE)
 	{
-		emit(f, "ldc 0.0");
-		emit(f, "fstore", offset);
+		;
 	}
 	else
 	{
@@ -128,7 +127,6 @@ void LocalDeclExpr::gencode(FILE* f) const {
 	}
 }
 
-///
 ArrayDeclExpr::ArrayDeclExpr(string ident_, Expr_Type type_) : Expr(GARBAGE_TYPE, 0), ident(ident_) {
 	if(type_ == BOOL_TYPE) setType(BOOL_ARRAY_TYPE);
 	else if(type_ == INT_TYPE) setType(INT_ARRAY_TYPE);
@@ -147,7 +145,6 @@ ArrayDeclExpr::ArrayDeclExpr(string ident_, Expr_Type type_) : Expr(GARBAGE_TYPE
 void ArrayDeclExpr::gencode(FILE* f) const {
 }
 
-///
 NewArrayExpr::NewArrayExpr(Expr_Type type_, Expr* indexexpr_) : Expr(GARBAGE_TYPE, 1), indexexpr(indexexpr_) {	
 	if(indexexpr && indexexpr->getType() != INT_TYPE) 
 		printError(ARRINDERR, vector<string>());
@@ -160,14 +157,10 @@ NewArrayExpr::NewArrayExpr(Expr_Type type_, Expr* indexexpr_) : Expr(GARBAGE_TYP
 void NewArrayExpr::gencode(FILE* f) const {
 	indexexpr->gencode(f);
 	
-	string s;
-	if(type == BOOL_ARRAY_TYPE) s = "bool";
-	else if(type == INT_ARRAY_TYPE) s = "int";
-	else if(type == FLOAT_ARRAY_TYPE) s = "float";
-	emit(f, "newarray", s.c_str());
+/* TODO see the reference and know about the use of newarray instrutions*/
+
 }
 
-///
 GetArraySizeExpr::GetArraySizeExpr(string ident_) : Expr(INT_TYPE, 1), ident(ident_) 
 {
 	VariableEntry* currentVariable = currentSymbolTable->getVariableEntry(ident);
@@ -175,26 +168,28 @@ GetArraySizeExpr::GetArraySizeExpr(string ident_) : Expr(INT_TYPE, 1), ident(ide
 
 	index = currentVariable->getIndex();
 	isGlobal = currentVariable->isGlobal();
-	oritype = currentVariable->getType();
+	oritype = currentVariable->getType();	// oritype is XXX_ARRAY_TYPE, type is INT_TYPE.
 	
 	if(oritype != BOOL_ARRAY_TYPE && oritype != INT_ARRAY_TYPE && oritype != FLOAT_ARRAY_TYPE)
 		printError(NOTARRERR, vector<string>());
 }
 
 void GetArraySizeExpr::gencode(FILE* f) const {
+
+/* TODO see the reference and know about the use of arraylength instrutions. *
+*  and you need know the class member variable you can use. 								*/
 	if(isGlobal) 
 	{
-			string s = filename + "/" + ident;
-			s += " " + TypeSignature[oritype];
-			emit(f, "getstatic", s.c_str());
+		;
 	}
 	else 
-		emit(f, "aload", index);
-
+	{
+		;
+	}
+	
 	emit(f, "arraylength");
 }
 
-///IdentArrayExpr
 IdentArrayExpr::IdentArrayExpr(string ident_, Expr* indexexpr_) : Expr(GARBAGE_TYPE), ident(ident_), indexexpr(indexexpr_) 
 {
 	VariableEntry* currentVariable = currentSymbolTable->getVariableEntry(ident);
@@ -202,7 +197,7 @@ IdentArrayExpr::IdentArrayExpr(string ident_, Expr* indexexpr_) : Expr(GARBAGE_T
 	
 	index = currentVariable->getIndex();
 	isGlobal = currentVariable->isGlobal();
-	oritype = currentVariable->getType();
+	oritype = currentVariable->getType(); // oritype is XXX_ARRAY_TYPE, type is XXX_TYPE.
 	
 	if(currentVariable->getType() == INT_ARRAY_TYPE) type = INT_TYPE;
 	else if(currentVariable->getType() == BOOL_ARRAY_TYPE) type = BOOL_TYPE;
@@ -217,21 +212,26 @@ IdentArrayExpr::IdentArrayExpr(string ident_, Expr* indexexpr_) : Expr(GARBAGE_T
 }
 
 void IdentArrayExpr::gencode(FILE* f) const {
+/* TODO see the reference and know about the use of alod, faload, iaload instrutions	*
+*  reference IdentExpr and know how to use global variables.												  */
+
+	// load the array reference.
 	if(isGlobal) 
 	{
-			string s = filename + "/" + ident;
-			s += " " + TypeSignature[oritype];
-			emit(f, "getstatic", s.c_str());
+		;
 	}
 	else 
-		emit(f, "aload", index);
+	{
+		;
+	}
 	
-	indexexpr->gencode(f);
+	// do gencode the index expression
 	
+	// use the index to load the element of the array
 	if(type == FLOAT_TYPE)
-		emit(f, "faload");
+		;
 	else
-		emit(f, "iaload");
+		;
 }
 
 IdentExpr::IdentExpr(string ident_) : Expr(GARBAGE_TYPE, 1), ident(ident_) {
@@ -243,7 +243,7 @@ IdentExpr::IdentExpr(string ident_) : Expr(GARBAGE_TYPE, 1), ident(ident_) {
 }
 
 void IdentExpr::gencode(FILE* f) const {
-	if(isGlobal) // emit(f, "getstatic", ident.c_str());
+	if(isGlobal) 
 	{
 		string s = filename + "/" + ident;
 		s += " " + TypeSignature[type];
@@ -291,6 +291,8 @@ LeftValueExpr::LeftValueExpr(string ident_, Expr* indexexpr_) : Expr(GARBAGE_TYP
 }
 
 void LeftValueExpr::gencode(FILE* f) const {
+/* TODO see the VarAssignmentExpr::gencode and know what to implement here */
+
 	if(isGlobal) 
 	{
 			string s = filename + "/" + ident;
@@ -313,7 +315,7 @@ VarAssignmentExpr::VarAssignmentExpr(Expr* left_, Expr* right_) : Expr(GARBAGE_T
 }
 
 void VarAssignmentExpr::gencode(FILE* f) const {
-	//load Lval
+	//load Lval if Lval is an array element
 	if(((LeftValueExpr*)left)->indexexpr)
 		left->gencode(f);
 	
@@ -327,8 +329,9 @@ void VarAssignmentExpr::gencode(FILE* f) const {
 		emit(f, "dup");	
 	
 	// store in Lval
-	if(((LeftValueExpr*)left)->indexexpr)
+	if(((LeftValueExpr*)left)->indexexpr)	
 	{
+		/* TODO Lval is an array element, to know the following both instrutions and complete LeftValueExpr::gencode */
 		if(type == FLOAT_TYPE)
 			emit(f, "fastore");
 		else
@@ -400,16 +403,15 @@ NumberBinaryExpr::NumberBinaryExpr(Expr* left_, Expr* right_) : BinaryExpr(left_
 	if(left->getType() == BOOL_TYPE || right->getType() == BOOL_TYPE )
 		printError(EXPRTYPEERR, vector<string>());
 	
+	/* TODO check the type of both side expressions, and set the correct type for them. */
 	if(left->getType() == FLOAT_TYPE || right->getType() == FLOAT_TYPE)
 	{
 		left_i2f = ( left->getType() == INT_TYPE );
 		right_i2f = ( right->getType() == INT_TYPE );
-		setType(FLOAT_TYPE);
 	}
 	else
 	{
 		left_i2f = right_i2f = false;
-		setType(INT_TYPE);
 	}
 	
 	setStacksize(left->getStacksize() + right->getStacksize());
@@ -417,15 +419,8 @@ NumberBinaryExpr::NumberBinaryExpr(Expr* left_, Expr* right_) : BinaryExpr(left_
 
 
 void AdditionBinaryExpr::gencode(FILE* f) const {
-	left->gencode(f);
-	if(left_i2f) emit(f, "i2f");
-	right->gencode(f);
-	if(right_i2f) emit(f, "i2f");
-	
-	if(type == FLOAT_TYPE)
-		emit(f, "fadd");
-	else
-		emit(f, "iadd");
+/* TODO implement this method*/
+
 }
 
 void SubtractionBinaryExpr::gencode(FILE* f) const {
@@ -453,15 +448,8 @@ void MultiplicationBinaryExpr::gencode(FILE* f) const {
 }
 
 void DivisionBinaryExpr::gencode(FILE* f) const {
-	left->gencode(f);
-	if(left_i2f) emit(f, "i2f");
-	right->gencode(f);
-	if(right_i2f) emit(f, "i2f");
-	
-	if(type == FLOAT_TYPE)
-		emit(f, "fdiv");
-	else
-		emit(f, "idiv");
+/* TODO implement this method*/
+
 }
 
 void ModulusBinaryExpr::gencode(FILE* f) const {
@@ -554,20 +542,8 @@ void LECompareBinaryExpr::gencode(FILE* f) const {
 	emitLabel(f, label2);
 }
 
+/* TODO implement this method. (Little operator) */
 void LTCompareBinaryExpr::gencode(FILE* f) const {
-	left->gencode(f);
-	right->gencode(f);
-
-	int label1 = getLabel();
-	int label2 = getLabel();
-
-	emit(f, "isub");
-	emitJump(f, "iflt", label1);
-	emit(f, "ldc", 0);
-	emitJump(f, "goto", label2);
-	emitLabel(f, label1);
-	emit(f, "ldc", 1);
-	emitLabel(f, label2);
 }
 
 void GECompareBinaryExpr::gencode(FILE* f) const {
@@ -602,20 +578,8 @@ void GTCompareBinaryExpr::gencode(FILE* f) const {
 	emitLabel(f, label2);
 }
 
+/* TODO implement this method. (Equal operator) */
 void EQCompareBinaryExpr::gencode(FILE* f) const {
-	left->gencode(f);
-	right->gencode(f);
-
-	int label1 = getLabel();
-	int label2 = getLabel();
-
-	emit(f, "isub");
-	emitJump(f, "ifeq", label1);
-	emit(f, "ldc", 0);
-	emitJump(f, "goto", label2);
-	emitLabel(f, label1);
-	emit(f, "ldc", 1);
-	emitLabel(f, label2);
 }
 
 void NECompareBinaryExpr::gencode(FILE* f) const {
