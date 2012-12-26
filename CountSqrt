@@ -1,0 +1,25 @@
+int num;
+
+//
+// Integer square root function
+// Uses Newton's Method to iteratively compute sqrt(a)
+//
+int isqrt(int a) {
+  int guess;
+  int xprev;
+  if (a < 0) return 0;  // avoid sqrt of negative numbers
+  guess = (xprev = a)/2;
+  while (guess != xprev) {
+    xprev = guess;
+    guess = (guess + a/guess)/2;
+  }
+  return guess;
+}
+
+void main(void) {
+  int x;
+  num = iread();
+  x = isqrt(num);
+  iprint(x);
+	return;
+}
